@@ -1,0 +1,159 @@
+#############################################
+# NEWHOPE-1024
+#############################################
+
+# Must be the first instruction
+config ( n = 1024 , q = 12289 )
+# Must be the first instruction
+
+# Specify "define" flags here
+# `define KEYGEN
+# `define ENCRYPT
+# `define DECRYPT
+
+#############################################
+# NEWHOPE-1024.CPAPKE.KEYGEN
+#############################################
+
+`ifdef KEYGEN
+
+# Inputs  : SEED = ( r0 )
+# Outputs : PK = ( r0 , Poly_0 ) ; SK = ( Poly_5 )
+
+random ( r0 )
+print ( r0 )
+
+sha3_init
+sha3_512_absorb ( r0 )
+r0 || r1 = sha3_512_digest
+
+# Gen (a)
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 0 , c1 = 0 , poly = 0 )
+
+# Sample (s)
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 0 , k = 8 , poly = 1 )
+
+# Sample (e)
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 1 , k = 8 , poly = 2 )
+
+# NTT (s)
+mult_psi ( poly = 1 )
+transform ( mode = DIF_NTT , poly_dst = 5 , poly_src = 1 )
+
+# NTT (e)
+mult_psi ( poly = 2 )
+transform ( mode = DIF_NTT , poly_dst = 6 , poly_src = 2 )
+
+# a * NTT (s)
+poly_op ( op = MUL , poly_dst = 0 , poly_src = 5 )
+
+# a * NTT (s) + NTT (e)
+poly_op ( op = ADD , poly_dst = 0 , poly_src = 6 )
+
+print ( r0 )
+save ( r0 , "data/newhope_1024/pk_1.npy" )
+print ( poly = 0 )
+save ( poly = 0 , "data/newhope_1024/pk_2.npy" )
+print ( poly = 5 )
+save ( poly = 5 , "data/newhope_1024/sk.npy" )
+
+`endif
+
+#############################################
+# NEWHOPE-1024.CPAPKE.ENCRYPT
+#############################################
+
+`ifdef ENCRYPT
+
+# Inputs  : PK = ( r0 , Poly_3 ) ; COIN = ( r1 ) ; PTXT = ( Poly_7 )
+# Outputs : CTXT = ( Poly_0 , Poly_1 )
+
+load ( r0 , "data/newhope_1024/pk_1.npy" )
+print ( r0 )
+load ( poly = 3 , "data/newhope_1024/pk_2.npy" )
+print ( poly = 3 )
+random ( r1 )
+print ( r1 )
+random ( poly = 7 , encoding = BINARY_4RED, "data/newhope_1024/pt_in.npy" )
+print ( poly = 7 )
+
+# Gen (a)
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 0 , c1 = 0 , poly = 0 )
+
+# Sample (s')
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 0 , k = 8 , poly = 1 )
+
+# Sample (e')
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 1 , k = 8 , poly = 2 )
+
+# NTT (s')
+mult_psi ( poly = 1 )
+transform ( mode = DIF_NTT , poly_dst = 5 , poly_src = 1 )
+
+# NTT (e')
+mult_psi ( poly = 2 )
+transform ( mode = DIF_NTT , poly_dst = 6 , poly_src = 2 )
+
+# a * NTT (s')
+poly_op ( op = MUL , poly_dst = 0 , poly_src = 5 )
+
+# a * NTT (s') + NTT (e')
+poly_op ( op = ADD , poly_dst = 0 , poly_src = 6 )
+
+# b * NTT (s')
+poly_op ( op = MUL , poly_dst = 5 , poly_src = 3 )
+
+# INTT (b * NTT (s'))
+transform ( mode = DIT_INTT , poly_dst = 1 , poly_src = 5 )
+mult_psi_inv ( poly = 1 )
+
+# Sample (e")
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 2 , k = 8 , poly = 4 )
+
+# INTT (b * NTT (s')) + e"
+poly_op ( op = ADD , poly_dst = 1 , poly_src = 4 )
+
+# INTT (b * NTT (s')) + e" + v
+poly_op ( op = ADD , poly_dst = 1 , poly_src = 7 )
+
+print ( poly = 0 )
+save ( poly = 0 , "data/newhope_1024/ct_1.npy" )
+print ( poly = 1 )
+save ( poly = 1 , "data/newhope_1024/ct_2.npy" )
+
+`endif
+
+#############################################
+# NEWHOPE-1024.CPAPKE.DECRYPT
+#############################################
+
+`ifdef DECRYPT
+
+# Inputs  : CTXT = ( Poly_0 , Poly_2 ) ; SK = ( Poly_4 )
+# Outputs : PTXT = ( Poly_7 )
+
+load ( poly = 0 , "data/newhope_1024/ct_1.npy" )
+print ( poly = 0 )
+load ( poly = 2 , "data/newhope_1024/ct_2.npy" )
+print ( poly = 2 )
+load ( poly = 4 , "data/newhope_1024/sk.npy" )
+print ( poly = 4 )
+
+# NTT (u * s)
+poly_op ( op = MUL , poly_dst = 0 , poly_src = 4 )
+
+# u * s
+transform ( mode = DIT_INTT , poly_dst = 7 , poly_src = 0 )
+mult_psi_inv ( poly = 7 )
+
+# v - (u * s)
+poly_op ( op = SUB , poly_dst = 7 , poly_src = 2 )
+
+print ( poly = 7 )
+save ( poly = 7 , "data/newhope_1024/pt_out.npy" )
+#encode_print ( poly = 7 , encoding = BINARY_4RED )
+encode_compare ( "data/newhope_1024/pt_in.npy" , "data/newhope_1024/pt_out.npy" , encoding = BINARY_4RED )
+
+`endif
+
+end

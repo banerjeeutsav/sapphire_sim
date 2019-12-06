@@ -1,0 +1,447 @@
+#############################################
+# KYBER-v1-1024
+#############################################
+
+# Must be the first instruction
+config ( n = 256 , q = 7681 )
+# Must be the first instruction
+
+# Specify "define" flags here
+# `define KEYGEN
+# `define ENCRYPT
+# `define DECRYPT
+
+#############################################
+# KYBER-v1-1024.CPAPKE.KEYGEN
+#############################################
+
+`ifdef KEYGEN
+
+# Inputs  : SEED = ( r0 )
+# Outputs : PK = ( r0 , Poly_24 , Poly_25 , Poly_26 , Poly_27 ) ; SK = ( Poly_16 , Poly_17 , Poly_18 , Poly_19 )
+
+random ( r0 )
+print ( r0 )
+
+sha3_init
+sha3_512_absorb ( r0 )
+r0 || r1 = sha3_512_digest
+
+# Sample (S)
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 0 , k = 3 , poly = 4 )
+#print ( poly = 4 )
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 1 , k = 3 , poly = 5 )
+#print ( poly = 5 )
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 2 , k = 3 , poly = 6 )
+#print ( poly = 6 )
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 3 , k = 3 , poly = 7 )
+#print ( poly = 7 )
+
+# NTT (S)
+mult_psi ( poly = 4 )
+transform ( mode = DIF_NTT , poly_dst = 16 , poly_src = 4 )
+mult_psi ( poly = 5 )
+transform ( mode = DIF_NTT , poly_dst = 17 , poly_src = 5 )
+mult_psi ( poly = 6 )
+transform ( mode = DIF_NTT , poly_dst = 18 , poly_src = 6 )
+mult_psi ( poly = 7 )
+transform ( mode = DIF_NTT , poly_dst = 19 , poly_src = 7 )
+
+# Gen (A) - Row 0
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 0 , c1 = 0 , poly = 0 )
+#print ( poly = 0 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 1 , c1 = 0 , poly = 1 )
+#print ( poly = 1 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 2 , c1 = 0 , poly = 2 )
+#print ( poly = 2 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 3 , c1 = 0 , poly = 3 )
+#print ( poly = 3 )
+
+# A * NTT (S) - Row 0
+poly_op ( op = MUL , poly_dst = 0 , poly_src = 16 )
+poly_op ( op = MUL , poly_dst = 1 , poly_src = 17 )
+poly_op ( op = MUL , poly_dst = 2 , poly_src = 18 )
+poly_op ( op = MUL , poly_dst = 3 , poly_src = 19 )
+init ( poly = 20 )
+poly_op ( op = ADD , poly_dst = 20 , poly_src = 0 )
+poly_op ( op = ADD , poly_dst = 20 , poly_src = 1 )
+poly_op ( op = ADD , poly_dst = 20 , poly_src = 2 )
+poly_op ( op = ADD , poly_dst = 20 , poly_src = 3 )
+
+# Gen (A) - Row 1
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 0 , c1 = 1 , poly = 0 )
+#print ( poly = 0 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 1 , c1 = 1 , poly = 1 )
+#print ( poly = 1 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 2 , c1 = 1 , poly = 2 )
+#print ( poly = 2 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 3 , c1 = 1 , poly = 3 )
+#print ( poly = 3 )
+
+# A * NTT (S) - Row 1
+poly_op ( op = MUL , poly_dst = 0 , poly_src = 16 )
+poly_op ( op = MUL , poly_dst = 1 , poly_src = 17 )
+poly_op ( op = MUL , poly_dst = 2 , poly_src = 18 )
+poly_op ( op = MUL , poly_dst = 3 , poly_src = 19 )
+init ( poly = 21 )
+poly_op ( op = ADD , poly_dst = 21 , poly_src = 0 )
+poly_op ( op = ADD , poly_dst = 21 , poly_src = 1 )
+poly_op ( op = ADD , poly_dst = 21 , poly_src = 2 )
+poly_op ( op = ADD , poly_dst = 21 , poly_src = 3 )
+
+# Gen (A) - Row 2
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 0 , c1 = 2 , poly = 0 )
+#print ( poly = 0 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 1 , c1 = 2 , poly = 1 )
+#print ( poly = 1 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 2 , c1 = 2 , poly = 2 )
+#print ( poly = 2 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 3 , c1 = 2 , poly = 3 )
+#print ( poly = 3 )
+
+# A * NTT (S) - Row 2
+poly_op ( op = MUL , poly_dst = 0 , poly_src = 16 )
+poly_op ( op = MUL , poly_dst = 1 , poly_src = 17 )
+poly_op ( op = MUL , poly_dst = 2 , poly_src = 18 )
+poly_op ( op = MUL , poly_dst = 3 , poly_src = 19 )
+init ( poly = 22 )
+poly_op ( op = ADD , poly_dst = 22 , poly_src = 0 )
+poly_op ( op = ADD , poly_dst = 22 , poly_src = 1 )
+poly_op ( op = ADD , poly_dst = 22 , poly_src = 2 )
+poly_op ( op = ADD , poly_dst = 22 , poly_src = 3 )
+
+# Gen (A) - Row 3
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 0 , c1 = 3 , poly = 0 )
+#print ( poly = 0 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 1 , c1 = 3 , poly = 1 )
+#print ( poly = 1 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 2 , c1 = 3 , poly = 2 )
+#print ( poly = 2 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 3 , c1 = 3 , poly = 3 )
+#print ( poly = 3 )
+
+# A * NTT (S) - Row 3
+poly_op ( op = MUL , poly_dst = 0 , poly_src = 16 )
+poly_op ( op = MUL , poly_dst = 1 , poly_src = 17 )
+poly_op ( op = MUL , poly_dst = 2 , poly_src = 18 )
+poly_op ( op = MUL , poly_dst = 3 , poly_src = 19 )
+init ( poly = 23 )
+poly_op ( op = ADD , poly_dst = 23 , poly_src = 0 )
+poly_op ( op = ADD , poly_dst = 23 , poly_src = 1 )
+poly_op ( op = ADD , poly_dst = 23 , poly_src = 2 )
+poly_op ( op = ADD , poly_dst = 23 , poly_src = 3 )
+
+# Sample (E)
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 4 , k = 3 , poly = 24 )
+#print ( poly = 24 )
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 5 , k = 3 , poly = 25 )
+#print ( poly = 25 )
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 6 , k = 3 , poly = 26 )
+#print ( poly = 26 )
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 7 , k = 3 , poly = 27 )
+#print ( poly = 27 )
+
+# INTT (A * NTT (S))
+transform ( mode = DIT_INTT , poly_dst = 8 , poly_src = 20 )
+mult_psi_inv ( poly = 8 )
+transform ( mode = DIT_INTT , poly_dst = 9 , poly_src = 21 )
+mult_psi_inv ( poly = 9 )
+transform ( mode = DIT_INTT , poly_dst = 10 , poly_src = 22 )
+mult_psi_inv ( poly = 10 )
+transform ( mode = DIT_INTT , poly_dst = 11 , poly_src = 23 )
+mult_psi_inv ( poly = 11 )
+
+# INTT (A * NTT (S)) + E
+poly_op ( op = ADD , poly_dst = 24 , poly_src = 8 )
+poly_op ( op = ADD , poly_dst = 25 , poly_src = 9 )
+poly_op ( op = ADD , poly_dst = 26 , poly_src = 10 )
+poly_op ( op = ADD , poly_dst = 27 , poly_src = 11 )
+
+print ( r0 )
+save ( r0 , "data/kyber_v1_1024/pk_1.npy" )
+print ( poly = 24 )
+save ( poly = 24 , "data/kyber_v1_1024/pk_2.npy" )
+print ( poly = 25 )
+save ( poly = 25 , "data/kyber_v1_1024/pk_3.npy" )
+print ( poly = 26 )
+save ( poly = 26 , "data/kyber_v1_1024/pk_4.npy" )
+print ( poly = 27 )
+save ( poly = 27 , "data/kyber_v1_1024/pk_5.npy" )
+print ( poly = 16 )
+save ( poly = 16 , "data/kyber_v1_1024/sk_1.npy" )
+print ( poly = 17 )
+save ( poly = 17 , "data/kyber_v1_1024/sk_2.npy" )
+print ( poly = 18 )
+save ( poly = 18 , "data/kyber_v1_1024/sk_3.npy" )
+print ( poly = 19 )
+save ( poly = 19 , "data/kyber_v1_1024/sk_4.npy" )
+
+`endif
+
+#############################################
+# KYBER-v1-1024.CPAPKE.ENCRYPT
+#############################################
+
+`ifdef ENCRYPT
+
+# Inputs  : PK = ( r0 , Poly_28 , Poly_29 , Poly_30 , Poly_31 ) ; COIN = ( r1 ) ; PTXT = ( Poly_15 )
+# Outputs : CTXT = ( Poly_24 , Poly_25 , Poly_26 , Poly_27 , Poly_20 )
+
+load ( r0 , "data/kyber_v1_1024/pk_1.npy" )
+print ( r0 )
+load ( poly = 28 , "data/kyber_v1_1024/pk_2.npy" )
+print ( poly = 28 )
+load ( poly = 29 , "data/kyber_v1_1024/pk_3.npy" )
+print ( poly = 29 )
+load ( poly = 30 , "data/kyber_v1_1024/pk_4.npy" )
+print ( poly = 30 )
+load ( poly = 31 , "data/kyber_v1_1024/pk_5.npy" )
+print ( poly = 31 )
+random ( r1 )
+print ( r1 )
+random ( poly = 15 , encoding = BINARY_0RED, "data/kyber_v1_1024/pt_in.npy" )
+print ( poly = 15 )
+
+# Sample (R)
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 0 , k = 3 , poly = 4 )
+#print ( poly = 4 )
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 1 , k = 3 , poly = 5 )
+#print ( poly = 5 )
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 2 , k = 3 , poly = 6 )
+#print ( poly = 6 )
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 3 , k = 3 , poly = 7 )
+#print ( poly = 7 )
+
+# NTT (R)
+mult_psi ( poly = 4 )
+transform ( mode = DIF_NTT , poly_dst = 16 , poly_src = 4 )
+mult_psi ( poly = 5 )
+transform ( mode = DIF_NTT , poly_dst = 17 , poly_src = 5 )
+mult_psi ( poly = 6 )
+transform ( mode = DIF_NTT , poly_dst = 18 , poly_src = 6 )
+mult_psi ( poly = 7 )
+transform ( mode = DIF_NTT , poly_dst = 19 , poly_src = 7 )
+
+# Gen (AT) - Row 0
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 0 , c1 = 0 , poly = 0 )
+#print ( poly = 0 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 0 , c1 = 1 , poly = 1 )
+#print ( poly = 1 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 0 , c1 = 2 , poly = 2 )
+#print ( poly = 2 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 0 , c1 = 3 , poly = 3 )
+#print ( poly = 3 )
+
+# AT * NTT (R) - Row 0
+poly_op ( op = MUL , poly_dst = 0 , poly_src = 16 )
+poly_op ( op = MUL , poly_dst = 1 , poly_src = 17 )
+poly_op ( op = MUL , poly_dst = 2 , poly_src = 18 )
+poly_op ( op = MUL , poly_dst = 3 , poly_src = 19 )
+init ( poly = 20 )
+poly_op ( op = ADD , poly_dst = 20 , poly_src = 0 )
+poly_op ( op = ADD , poly_dst = 20 , poly_src = 1 )
+poly_op ( op = ADD , poly_dst = 20 , poly_src = 2 )
+poly_op ( op = ADD , poly_dst = 20 , poly_src = 3 )
+
+# Gen (AT) - Row 1
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 1 , c1 = 0 , poly = 0 )
+#print ( poly = 0 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 1 , c1 = 1 , poly = 1 )
+#print ( poly = 1 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 1 , c1 = 2 , poly = 2 )
+#print ( poly = 2 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 1 , c1 = 3 , poly = 3 )
+#print ( poly = 3 )
+
+# AT * NTT (R) - Row 1
+poly_op ( op = MUL , poly_dst = 0 , poly_src = 16 )
+poly_op ( op = MUL , poly_dst = 1 , poly_src = 17 )
+poly_op ( op = MUL , poly_dst = 2 , poly_src = 18 )
+poly_op ( op = MUL , poly_dst = 3 , poly_src = 19 )
+init ( poly = 21 )
+poly_op ( op = ADD , poly_dst = 21 , poly_src = 0 )
+poly_op ( op = ADD , poly_dst = 21 , poly_src = 1 )
+poly_op ( op = ADD , poly_dst = 21 , poly_src = 2 )
+poly_op ( op = ADD , poly_dst = 21 , poly_src = 3 )
+
+# Gen (AT) - Row 2
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 2 , c1 = 0 , poly = 0 )
+#print ( poly = 0 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 2 , c1 = 1 , poly = 1 )
+#print ( poly = 1 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 2 , c1 = 2 , poly = 2 )
+#print ( poly = 2 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 2 , c1 = 3 , poly = 3 )
+#print ( poly = 3 )
+
+# AT * NTT (R) - Row 2
+poly_op ( op = MUL , poly_dst = 0 , poly_src = 16 )
+poly_op ( op = MUL , poly_dst = 1 , poly_src = 17 )
+poly_op ( op = MUL , poly_dst = 2 , poly_src = 18 )
+poly_op ( op = MUL , poly_dst = 3 , poly_src = 19 )
+init ( poly = 22 )
+poly_op ( op = ADD , poly_dst = 22 , poly_src = 0 )
+poly_op ( op = ADD , poly_dst = 22 , poly_src = 1 )
+poly_op ( op = ADD , poly_dst = 22 , poly_src = 2 )
+poly_op ( op = ADD , poly_dst = 22 , poly_src = 3 )
+
+# Gen (AT) - Row 3
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 3 , c1 = 0 , poly = 0 )
+#print ( poly = 0 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 3 , c1 = 1 , poly = 1 )
+#print ( poly = 1 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 3 , c1 = 2 , poly = 2 )
+#print ( poly = 2 )
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 3 , c1 = 3 , poly = 3 )
+#print ( poly = 3 )
+
+# AT * NTT (R) - Row 3
+poly_op ( op = MUL , poly_dst = 0 , poly_src = 16 )
+poly_op ( op = MUL , poly_dst = 1 , poly_src = 17 )
+poly_op ( op = MUL , poly_dst = 2 , poly_src = 18 )
+poly_op ( op = MUL , poly_dst = 3 , poly_src = 19 )
+init ( poly = 23 )
+poly_op ( op = ADD , poly_dst = 23 , poly_src = 0 )
+poly_op ( op = ADD , poly_dst = 23 , poly_src = 1 )
+poly_op ( op = ADD , poly_dst = 23 , poly_src = 2 )
+poly_op ( op = ADD , poly_dst = 23 , poly_src = 3 )
+
+# Sample (E1)
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 4 , k = 3 , poly = 24 )
+#print ( poly = 24 )
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 5 , k = 3 , poly = 25 )
+#print ( poly = 25 )
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 6 , k = 3 , poly = 26 )
+#print ( poly = 26 )
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 7 , k = 3 , poly = 27 )
+#print ( poly = 27 )
+
+# Sample (e2)
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 8 , k = 3 , poly = 12 )
+#print ( poly = 12 )
+
+# INTT (AT * NTT (R))
+transform ( mode = DIT_INTT , poly_dst = 8 , poly_src = 20 )
+mult_psi_inv ( poly = 8 )
+transform ( mode = DIT_INTT , poly_dst = 9 , poly_src = 21 )
+mult_psi_inv ( poly = 9 )
+transform ( mode = DIT_INTT , poly_dst = 10 , poly_src = 22 )
+mult_psi_inv ( poly = 10 )
+transform ( mode = DIT_INTT , poly_dst = 11 , poly_src = 23 )
+mult_psi_inv ( poly = 11 )
+
+# INTT (AT * NTT (R)) + E1
+poly_op ( op = ADD , poly_dst = 24 , poly_src = 8 )
+poly_op ( op = ADD , poly_dst = 25 , poly_src = 9 )
+poly_op ( op = ADD , poly_dst = 26 , poly_src = 10 )
+poly_op ( op = ADD , poly_dst = 27 , poly_src = 11 )
+
+# NTT (T)
+mult_psi ( poly = 28 )
+transform ( mode = DIF_NTT , poly_dst = 0 , poly_src = 28 )
+mult_psi ( poly = 29 )
+transform ( mode = DIF_NTT , poly_dst = 1 , poly_src = 29 )
+mult_psi ( poly = 30 )
+transform ( mode = DIF_NTT , poly_dst = 2 , poly_src = 30 )
+mult_psi ( poly = 31 )
+transform ( mode = DIF_NTT , poly_dst = 3 , poly_src = 31 )
+
+# NTT(T) * NTT (R)
+poly_op ( op = MUL , poly_dst = 0 , poly_src = 16 )
+poly_op ( op = MUL , poly_dst = 1 , poly_src = 17 )
+poly_op ( op = MUL , poly_dst = 2 , poly_src = 18 )
+poly_op ( op = MUL , poly_dst = 3 , poly_src = 19 )
+init ( poly = 20 )
+poly_op ( op = ADD , poly_dst = 20 , poly_src = 0 )
+poly_op ( op = ADD , poly_dst = 20 , poly_src = 1 )
+poly_op ( op = ADD , poly_dst = 20 , poly_src = 2 )
+poly_op ( op = ADD , poly_dst = 20 , poly_src = 3 )
+
+# INTT (NTT(T) * NTT (R))
+transform ( mode = DIT_INTT , poly_dst = 13 , poly_src = 20 )
+mult_psi_inv ( poly = 13 )
+poly_copy ( poly_dst = 20 , poly_src = 13 )
+
+# INTT (NTT(T) * NTT (R)) + e2
+poly_op ( op = ADD , poly_dst = 20 , poly_src = 12 )
+
+# INTT (NTT(T) * NTT (R)) + e2 + v
+poly_op ( op = ADD , poly_dst = 20 , poly_src = 15 )
+
+print ( poly = 24 )
+save ( poly = 24 , "data/kyber_v1_1024/ct_1.npy" )
+print ( poly = 25 )
+save ( poly = 25 , "data/kyber_v1_1024/ct_2.npy" )
+print ( poly = 26 )
+save ( poly = 26 , "data/kyber_v1_1024/ct_3.npy" )
+print ( poly = 27 )
+save ( poly = 27 , "data/kyber_v1_1024/ct_4.npy" )
+print ( poly = 20 )
+save ( poly = 20 , "data/kyber_v1_1024/ct_5.npy" )
+
+`endif
+
+#############################################
+# KYBER-v1-1024.CPAPKE.DECRYPT
+#############################################
+
+`ifdef DECRYPT
+
+# Inputs  : CTXT = ( Poly_24 , Poly_25 , Poly_26 , Poly_27 , Poly_20 ) ; SK = ( Poly_16 , Poly_17 , Poly_18 , Poly_19 )
+# Outputs : PTXT = ( Poly_15 )
+
+load ( poly = 24 , "data/kyber_v1_1024/ct_1.npy" )
+print ( poly = 24 )
+load ( poly = 25 , "data/kyber_v1_1024/ct_2.npy" )
+print ( poly = 25 )
+load ( poly = 26 , "data/kyber_v1_1024/ct_3.npy" )
+print ( poly = 26 )
+load ( poly = 27 , "data/kyber_v1_1024/ct_4.npy" )
+print ( poly = 27 )
+load ( poly = 20 , "data/kyber_v1_1024/ct_5.npy" )
+print ( poly = 20 )
+load ( poly = 16 , "data/kyber_v1_1024/sk_1.npy" )
+print ( poly = 16 )
+load ( poly = 17 , "data/kyber_v1_1024/sk_2.npy" )
+print ( poly = 17 )
+load ( poly = 18 , "data/kyber_v1_1024/sk_3.npy" )
+print ( poly = 18 )
+load ( poly = 19 , "data/kyber_v1_1024/sk_4.npy" )
+print ( poly = 19 )
+
+# NTT (U)
+mult_psi ( poly = 24 )
+transform ( mode = DIF_NTT , poly_dst = 0 , poly_src = 24 )
+mult_psi ( poly = 25 )
+transform ( mode = DIF_NTT , poly_dst = 1 , poly_src = 25 )
+mult_psi ( poly = 26 )
+transform ( mode = DIF_NTT , poly_dst = 2 , poly_src = 26 )
+mult_psi ( poly = 27 )
+transform ( mode = DIF_NTT , poly_dst = 3 , poly_src = 27 )
+
+# S * NTT (U)
+poly_op ( op = MUL , poly_dst = 0 , poly_src = 16 )
+poly_op ( op = MUL , poly_dst = 1 , poly_src = 17 )
+poly_op ( op = MUL , poly_dst = 2 , poly_src = 18 )
+poly_op ( op = MUL , poly_dst = 3 , poly_src = 19 )
+init ( poly = 21 )
+poly_op ( op = ADD , poly_dst = 21 , poly_src = 0 )
+poly_op ( op = ADD , poly_dst = 21 , poly_src = 1 )
+poly_op ( op = ADD , poly_dst = 21 , poly_src = 2 )
+poly_op ( op = ADD , poly_dst = 21 , poly_src = 3 )
+
+# INTT (S * NTT (U))
+transform ( mode = DIT_INTT , poly_dst = 15 , poly_src = 21 )
+mult_psi_inv ( poly = 15 )
+
+# v - INTT (S * NTT (U))
+poly_op ( op = SUB , poly_dst = 15 , poly_src = 20 )
+
+print ( poly = 15 )
+save ( poly = 15 , "data/kyber_v1_1024/pt_out.npy" )
+#encode_print ( poly = 15 , encoding = BINARY_0RED )
+encode_compare ( "data/kyber_v1_1024/pt_in.npy" , "data/kyber_v1_1024/pt_out.npy" , encoding = BINARY_0RED )
+
+`endif
+
+end

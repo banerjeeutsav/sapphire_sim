@@ -1,0 +1,172 @@
+#############################################
+# LIMA-2p-1024
+#############################################
+
+# Must be the first instructions
+config ( n = 1024 , q = 133121 )
+# Must be the first instruction
+
+# Specify "define" flags here
+# `define KEYGEN
+# `define ENCRYPT
+# `define DECRYPT
+
+#############################################
+# LIMA-2p-1024.CPAPKE.KEYGEN
+#############################################
+
+`ifdef KEYGEN
+
+# Inputs  : SEED = ( r0 )
+# Outputs : PK = ( r0 , Poly_0 ) ; SK = ( Poly_5 )
+
+random ( r0 )
+print ( r0 )
+
+sha3_init
+sha3_512_absorb ( r0 )
+r0 || r1 = sha3_512_digest
+
+# Gen (a)
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 0 , c1 = 0 , poly = 0 )
+
+# Sample (s)
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 0 , k = 20 , poly = 1 )
+
+# Sample (e)
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 1 , k = 20 , poly = 2 )
+
+# NTT (s)
+mult_psi ( poly = 1 )
+transform ( mode = DIF_NTT , poly_dst = 5 , poly_src = 1 )
+
+# NTT (e)
+mult_psi ( poly = 2 )
+transform ( mode = DIF_NTT , poly_dst = 6 , poly_src = 2 )
+
+# a * NTT (s)
+poly_op ( op = MUL , poly_dst = 0 , poly_src = 5 )
+
+# a * NTT (s) + NTT (e)
+poly_op ( op = ADD , poly_dst = 0 , poly_src = 6 )
+
+print ( r0 )
+save ( r0 , "data/lima_2p_1024/pk_1.npy" )
+print ( poly = 0 )
+save ( poly = 0 , "data/lima_2p_1024/pk_2.npy" )
+print ( poly = 5 )
+save ( poly = 5 , "data/lima_2p_1024/sk.npy" )
+
+`endif
+
+#############################################
+# LIMA-2p-1024.CPAPKE.ENCRYPT
+#############################################
+
+`ifdef ENCRYPT
+
+# Inputs  : PK = ( r0 , Poly_3 ) ; COIN = ( r1 ) ; PTXT = ( Poly_7 )
+# Outputs : CTXT = ( Poly_3 , Poly_0 )
+
+load ( r0 , "data/lima_2p_1024/pk_1.npy" )
+print ( r0 )
+load ( poly = 3 , "data/lima_2p_1024/pk_2.npy" )
+print ( poly = 3 )
+random ( r1 )
+print ( r1 )
+random ( poly = 7 , encoding = TRUNC_256, "data/lima_2p_1024/pt_in.npy" )
+print ( poly = 7 )
+
+# Gen (a)
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 0 , c1 = 0 , poly = 0 )
+
+c0 = 0
+rand_check: c0 = c0 + 1
+c1 = 0
+# Sample (v)
+bin_sample ( prng = SHAKE-256 , seed = r1 , k = 20 , poly = 1 )
+c1 = 1
+# Sample (e)
+bin_sample ( prng = SHAKE-256 , seed = r1 , k = 20 , poly = 2 )
+
+tmp = 0
+reg = sum ( poly = 1 )
+tmp = tmp + reg
+reg = sum ( poly = 2 )
+tmp = tmp + reg
+
+flag = compare ( tmp , 1574 )
+if (flag == 1) goto rand_check
+
+# NTT (v)
+mult_psi ( poly = 1 )
+transform ( mode = DIF_NTT , poly_dst = 4 , poly_src = 1 )
+
+# a * NTT (v)
+poly_op ( op = MUL , poly_dst = 0 , poly_src = 4 )
+
+# NTT (e)
+mult_psi ( poly = 2 )
+transform ( mode = DIF_NTT , poly_dst = 6 , poly_src = 2 )
+
+# NTT (c1) = a * NTT (v) + NTT (e)
+poly_op ( op = ADD , poly_dst = 0 , poly_src = 6 )
+
+# Sample (d)
+bin_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 2 , k = 20 , poly = 6 )
+
+# NTT (b) * NTT (v)
+poly_op ( op = MUL , poly_dst = 4 , poly_src = 3 )
+
+# INTT (NTT (b) * NTT (v))
+transform ( mode = DIT_INTT , poly_dst = 3 , poly_src = 4 )
+mult_psi_inv ( poly = 3 )
+
+# (b * v) + d
+poly_op ( op = ADD , poly_dst = 3 , poly_src = 6 )
+
+# c0 = (b * v) + d + m
+poly_op ( op = ADD , poly_dst = 3 , poly_src = 7 )
+
+print ( poly = 3 )
+save ( poly = 3 , "data/lima_2p_1024/ct_1.npy" )
+print ( poly = 0 )
+save ( poly = 0 , "data/lima_2p_1024/ct_2.npy" )
+
+`endif
+
+#############################################
+# LIMA-2p-1024.CPAPKE.DECRYPT
+#############################################
+
+`ifdef DECRYPT
+
+# Inputs  : CTXT = ( Poly_0 , Poly_4 ) ; SK = ( Poly_1 )
+# Outputs : PTXT = ( Poly_5 )
+
+load ( poly = 0 , "data/lima_2p_1024/ct_1.npy" )
+print ( poly = 0 )
+load ( poly = 4 , "data/lima_2p_1024/ct_2.npy" )
+print ( poly = 4 )
+load ( poly = 1 , "data/lima_2p_1024/sk.npy" )
+print ( poly = 1 )
+
+# NTT (c1) * NTT (s)
+poly_op ( op = MUL , poly_dst = 1 , poly_src = 4 )
+
+# INTT (NTT (c1) * NTT (s))
+transform ( mode = DIT_INTT , poly_dst = 5 , poly_src = 1 )
+mult_psi_inv ( poly = 5 )
+
+# c0 - (c1 * s)
+poly_op ( op = SUB , poly_dst = 5 , poly_src = 0 )
+
+print ( poly = 5 )
+save ( poly = 5 , "data/lima_2p_1024/pt_out.npy" )
+#encode_print ( poly = 5 , encoding = TRUNC_256 )
+encode_compare ( "data/lima_2p_1024/pt_in.npy" , "data/lima_2p_1024/pt_out.npy" , encoding = TRUNC_256 )
+
+`endif
+
+end
+

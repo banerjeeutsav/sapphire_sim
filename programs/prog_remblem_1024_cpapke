@@ -1,0 +1,164 @@
+#############################################
+# R.EMBLEM-1024
+#############################################
+
+# Must be the first instruction
+config ( n = 1024 , q = 12289 )
+# Must be the first instruction
+
+# Specify "define" flags here
+# `define KEYGEN
+# `define ENCRYPT
+# `define DECRYPT
+
+#############################################
+# R.EMBLEM-1024.CPAPKE.KEYGEN
+#############################################
+
+`ifdef KEYGEN
+
+# Inputs  : SEED = ( r0 )
+# Outputs : PK = ( r0 , Poly_4 ) ; SK = ( Poly_5 )
+
+sha3_init
+sha3_512_absorb ( r0 )
+r0 || r1 = sha3_512_digest
+
+# Gen (a)
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 0 , c1 = 0 , poly = 0 )
+
+# Sample (x)
+uni_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 0 , eta = 1 , poly = 1 )
+
+# Sample (e)
+cdt_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 1 , r = 10 , poly = 2 )
+
+# NTT (x)
+mult_psi ( poly = 1 )
+transform ( mode = DIF_NTT , poly_dst = 5 , poly_src = 1 )
+
+# a * NTT (x)
+poly_op ( op = MUL , poly_dst = 0 , poly_src = 5 )
+
+# INTT (a * NTT(x))
+transform ( mode = DIT_INTT , poly_dst = 4 , poly_src = 0 )
+mult_psi_inv ( poly = 4 )
+
+# a * x + e
+poly_op ( op = ADD , poly_dst = 4 , poly_src = 2 )
+
+print ( r0 )
+save ( r0 , "data/remblem_1024/pk_1.npy" )
+print ( poly = 4 )
+save ( poly = 4 , "data/remblem_1024/pk_2.npy" )
+print ( poly = 5 )
+save ( poly = 5 , "data/remblem_1024/sk.npy" )
+
+`endif
+
+#############################################
+# R.EMBLEM-1024.CPAPKE.ENCRYPT
+#############################################
+
+`ifdef ENCRYPT
+
+# Inputs  : PK = ( r0 , Poly_6 ) ; COIN = ( r1 ) ; PTXT = ( Poly_7 )
+# Outputs : CTXT = ( Poly_2 , Poly_3 )
+
+load ( r0 , "data/remblem_1024/pk_1.npy" )
+print ( r0 )
+load ( poly = 6 , "data/remblem_1024/pk_2.npy" )
+print ( poly = 6 )
+random ( r1 )
+print ( r1 )
+random ( poly = 7 , encoding = TRUNC_256_MSB, "data/remblem_1024/pt_in.npy" )
+print ( poly = 7 )
+
+# Gen (a)
+rej_sample ( prng = SHAKE-128 , seed = r0 , c0 = 0 , c1 = 0 , poly = 0 )
+
+# Sample (r)
+uni_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 0 , eta = 1 , poly = 1 )
+
+# Sample (e1)
+cdt_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 1 , r = 10 , poly = 2 )
+
+# Sample (e2)
+cdt_sample ( prng = SHAKE-256 , seed = r1 , c0 = 0 , c1 = 2 , r = 10 , poly = 3 )
+
+# NTT (r)
+mult_psi ( poly = 1 )
+transform ( mode = DIF_NTT , poly_dst = 4 , poly_src = 1 )
+
+# a * NTT (r)
+poly_op ( op = MUL , poly_dst = 0 , poly_src = 4 )
+
+# INTT (a * NTT (r))
+transform ( mode = DIT_INTT , poly_dst = 5 , poly_src = 0 )
+mult_psi_inv ( poly = 5 )
+
+# a * r + e1
+poly_op ( op = ADD , poly_dst = 2 , poly_src = 5 )
+
+# NTT (b)
+mult_psi ( poly = 6 )
+transform ( mode = DIF_NTT , poly_dst = 1 , poly_src = 6 )
+
+# NTT (b) * NTT (r)
+poly_op ( op = MUL , poly_dst = 1 , poly_src = 4 )
+
+# INTT (NTT (b) * NTT (r))
+transform ( mode = DIT_INTT , poly_dst = 5 , poly_src = 1 )
+mult_psi_inv ( poly = 5 )
+
+# b * r + e2
+poly_op ( op = ADD , poly_dst = 3 , poly_src = 5 )
+
+# b * r + e2 + m
+poly_op ( op = ADD , poly_dst = 3 , poly_src = 7 )
+
+print ( poly = 2 )
+save ( poly = 2 , "data/remblem_1024/ct_1.npy" )
+print ( poly = 3 )
+save ( poly = 3 , "data/remblem_1024/ct_2.npy" )
+
+`endif
+
+#############################################
+# R.EMBLEM-1024.CPAPKE.DECRYPT
+#############################################
+
+`ifdef DECRYPT
+
+# Inputs  : CTXT = ( Poly_0 , Poly_2 ) ; SK = ( Poly_1 )
+# Outputs : PTXT = ( Poly_6 )
+
+load ( poly = 0 , "data/remblem_1024/ct_1.npy" )
+print ( poly = 0 )
+load ( poly = 2 , "data/remblem_1024/ct_2.npy" )
+print ( poly = 2 )
+load ( poly = 1 , "data/remblem_1024/sk.npy" )
+print ( poly = 1 )
+
+# NTT (c1)
+mult_psi ( poly = 0 )
+transform ( mode = DIF_NTT , poly_dst = 5 , poly_src = 0 )
+
+# NTT (c1) * NTT (x)
+poly_op ( op = MUL , poly_dst = 1 , poly_src = 5 )
+
+# INTT (NTT (c1) * NTT (x))
+transform ( mode = DIT_INTT , poly_dst = 6 , poly_src = 1 )
+mult_psi_inv ( poly = 6 )
+
+# c2 - c1 * x
+poly_op ( op = SUB , poly_dst = 6 , poly_src = 2 )
+
+print ( poly = 6 )
+save ( poly = 6 , "data/remblem_1024/pt_out.npy" )
+#encode ( poly = 6 , encoding = TRUNC_256_MSB )
+encode_compare ( "data/remblem_1024/pt_in.npy" , "data/remblem_1024/pt_out.npy" , encoding = TRUNC_256_MSB )
+
+`endif
+
+end
