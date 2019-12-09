@@ -4,7 +4,7 @@ Saphire-Sim is a Python-based cycle-accurate simulator for the [Sapphire](https:
 
 In the original test chip, the Sapphire crypto-core was integrated with a RISC-V micro-processor through its memory-mapped interface. However, the simulator currently replicates functionality of the crypto-core only, that is, neither RISC-V programs nor data movement between the RISC-V processor and the crypto-core can be simulated. Please note that this is not an architectural simulator, that is, it is only functionally correct and does not replicate any internal circuitry of the crypto-core (unlike an HDL-based RTL simulation).
 
-The simulator currently supports polynomial dimension {64, 128, 256, 512, 1024, 2048} and prime modulus {3329, 7681, 12289, 40961, 65537, 120833, 133121, 184321, 4205569, 4206593, 8058881, 8380417, 8404993}. Polynomials can be sampled from various discrete probability distributions with configurable parameters. Custom instructions supported by the crypto-processor are summarized [here](https://banerjeeutsav.github.io/files/2019-12-01-2019-github.pdf).
+The simulator currently supports polynomial dimension {64, 128, 256, 512, 1024, 2048} and prime modulus {3329, 7681, 12289, 40961, 65537, 120833, 133121, 184321, 4205569, 4206593, 8058881, 8380417, 8404993}. Polynomials can be sampled from various discrete probability distributions with configurable parameters. Custom instructions supported by the crypto-processor are summarized [here](documentation.pdf).
 
 ### Usage
 
@@ -39,7 +39,7 @@ The ```--iter``` option can be used to indicate the number of iterations of prog
 
 ### Detailed Documentation
 
-For detailed description of the Sapphire crypto-processor, supported instructions, example code and instructions for Sapphire-Sim, please refer to this [document](https://banerjeeutsav.github.io/files/2019-12-01-2019-github.pdf).
+For detailed description of the Sapphire crypto-processor, supported instructions, example code and instructions for Sapphire-Sim, please refer to this [document](documentation.pdf).
 
 ### Bibliography
 
